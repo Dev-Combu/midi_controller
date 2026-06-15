@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ampero Controller</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .mode {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .button-config {
+            margin-bottom: 10px;
+        }
+
+        input,
+        select {
+            padding: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Ampero MIDI Controller</h1>
+
+    <button id="connectBtn">
+        UNO 연결
+    </button>
+
+    <hr>
+
+    <div id="container"></div>
+
+    <button id="saveBtn">
+        EEPROM 저장
+    </button>
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
