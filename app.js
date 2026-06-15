@@ -45,7 +45,6 @@ function createUI() {
     }
 }
 
-// PC 모드일 때만 번호 입력 칸이 보이게 제어하는 센스 구현
 window.toggleNumberInput = function(mode, btn) {
     const selectVal = document.getElementById(`type_${mode}_${btn}`).value;
     const numContainer = document.getElementById(`num_container_${mode}_${btn}`);
@@ -58,7 +57,6 @@ window.toggleNumberInput = function(mode, btn) {
 
 createUI();
 
-// 초기 상태 빌드 시 인풋 박스 숨김 정돈
 for(let m=0; m<3; m++) {
     for(let b=0; b<3; b++) toggleNumberInput(m, b);
 }
@@ -67,7 +65,8 @@ document.getElementById("connectBtn").onclick = connect;
 async function connect() {
     try {
         const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
+        // 아두이노 UNO의 기본 안정 속도인 9600bps로 변경하여 통신 안정성을 확보합니다.
+        await port.open({ baudRate: 9600 });
         writer = port.writable.getWriter();
         alert("UNO 연결 완료");
     } catch (err) {
@@ -82,33 +81,29 @@ async function saveConfig() {
         return;
     }
 
-    const data = [];
+    // 아두이노가 오류 없이 파싱할 수 있도록 초간단 문자열 포맷으로 데이터 빌드
+    // 형식: [M모드B버튼T타입N값] 예: M0B0T1N26,M0B1T1N60...
+    let payload = "";
     for (let mode = 0; mode < 3; mode++) {
         for (let btn = 0; btn < 3; btn++) {
             const selectVal = document.getElementById(`type_${mode}_${btn}`).value;
-            let type = 1; // 기본은 CC 모드
+            let type = 1; 
             let number = 0;
 
             if (selectVal === "PC") {
-                type = 0; // PC 모드 설정
+                type = 0; 
                 number = Number(document.getElementById(`num_${mode}_${btn}`).value);
             } else {
-                number = Number(selectVal); // 22, 23, 60 같은 CC 번호 대입
+                number = Number(selectVal); 
             }
-
-            data.push({ mode, button: btn, type, number });
+            payload += `M${mode}B${btn}T${type}N${number},`;
         }
     }
+    payload += "\n"; // 끝을 알리는 개행문자
 
-    const payload = JSON.stringify(data) + "\n";
-    
     try {
         const encoder = new TextEncoder();
-        const encodedData = encoder.encode(payload);
-        for (let i = 0; i < encodedData.length; i++) {
-            await writer.write(new Uint8Array([encodedData[i]]));
-            await new Promise(resolve => setTimeout(resolve, 2)); 
-        }
+        await writer.write(encoder.encode(payload));
         alert("Ampero II Stomp 맞춤 설정 저장 완료!");
     } catch (err) {
         alert("전송 오류: " + err.message);
